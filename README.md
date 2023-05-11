@@ -2,9 +2,10 @@
 
 <p align="center">
   Talk to ChatGPT in your terminal.
+</p>
 
-![Demo](./demo.gif)
-
+<p align="center">
+  <img src="./demo.gif">
 </p>
 
 ## Why
