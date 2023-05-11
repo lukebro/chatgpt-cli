@@ -22,3 +22,9 @@ This one will keep the context of the conversation just like https://chat.openai
 If you want to `cargo build --release` and copy the bin file to your path so you can use it globally, you'll need to manually add `OPEN_AI_KEY` into your environment variables. It will not read the `.env` in that case.
 
 I plan to fix this by creating a system wide config file that can store your key. It requires turning this into more of a CLI app where it will prompt you to enter your key, etc. etc.
+
+## TODO
+
+- [ ] Prompt for Open AI API key
+- [ ] Save API key in system wide config file
+- [ ] Handle markdown formatting
