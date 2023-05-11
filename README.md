@@ -1,8 +1,11 @@
 # chatgpt-cli
 
-Talk to ChatGPT in your terminal.
+<p align="center">
+  Talk to ChatGPT in your terminal.
 
 ![Demo](./demo.gif)
+
+</p>
 
 ## Why
 
