@@ -18,7 +18,7 @@
 
 These instructions are for MacOS/Linux only.
 
-1. Run `sh ./build-and-install.sh`
+1. Run `./build-and-install.sh`
 1. Make sure `/usr/local/bin` is inside your `$PATH`
 1. Run `chatgpt` to get started
 
