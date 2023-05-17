@@ -91,14 +91,13 @@ async fn main() -> Result<()> {
         messages: Vec::new(),
     };
 
-    println!(
-        "\n{}\n",
-        "ChatGPT in your CLI".blue(),
-    );
+    println!("\n{}", "ChatGPT CLI".blue(),);
 
     if !piped {
-        println!("{}\n", "Type 'exit' to quit".blue());
+        println!("{}", "Type 'exit' to quit".blue());
     }
+
+    println!("");
 
     let stdin = std::io::stdin();
     let mut run = true;
