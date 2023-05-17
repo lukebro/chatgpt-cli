@@ -16,19 +16,37 @@ This one will keep the context of the conversation just like https://chat.openai
 
 ## Getting Started
 
-1. Clone repo
-2. Copy `.env.sample` to `.env` and add your own [OpenAI API key](https://platform.openai.com/account/api-keys).
-3. (Alternativly supply key via `OPEN_AI_KEY=` environment variable.)
-4. `cargo run`
+These instructions are for Mac OS only.
 
-## Limitations
+1. Run `sh ./build-and-install.sh`
+1. Make sure `/usr/local/bin` is inside your `$PATH`
+1. Run `chatgpt` to get started
 
-If you want to `cargo build --release` and copy the bin file to your path so you can use it globally, you'll need to manually add `OPEN_AI_KEY` into your environment variables. It will not read the `.env` in that case.
+## Uninstalling
 
-I plan to fix this by creating a system wide config file that can store your key. It requires turning this into more of a CLI app where it will prompt you to enter your key, etc. etc.
+1. `chatgpt --clear`
+1. `rm /usr/local/bin/chatgpt`
+
+## Help
+
+```bash
+> chatgpt --help
+ChatGPT CLI
+
+Usage: chatgpt [PROMPT] [OPTIONS]
+
+Options:
+  -h, --help            Prints help information
+  -c, --clear           Clears the API key from the config
+
+Examples:
+  chatgpt --help
+  chatgpt --clear
+  chatgpt "How do I write quick sort in Typescript?"
+```
 
 ## TODO
 
-- [ ] Prompt for Open AI API key
-- [ ] Save API key in system wide config file
+- [x] Prompt for Open AI API key
+- [x] Save API key in system wide config file
 - [ ] Handle markdown formatting

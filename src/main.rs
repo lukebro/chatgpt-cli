@@ -4,6 +4,21 @@ use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use std::io::{stdout, Write};
 
+#[derive(Serialize, Deserialize)]
+struct Config {
+    version: u8,
+    open_ai_key: String,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            version: 0,
+            open_ai_key: String::new(),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct Message {
     role: Option<String>,
@@ -17,11 +32,56 @@ struct Conversation {
     messages: Vec<Message>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct Choice {
+    delta: Message,
+    index: usize,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct CompletionResponse {
+    id: String,
+    choices: Vec<Choice>,
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    dotenv::dotenv().ok();
+    let args: Vec<String> = std::env::args().collect();
+    let help = args.iter().find(|arg| {
+        let arg = arg.to_ascii_lowercase();
+        arg == "--help" || arg == "-h"
+    });
 
-    let open_ai_key = std::env::var("OPEN_AI_KEY")?;
+    if help.is_some() {
+        print_help();
+        return Ok(());
+    }
+
+    let clear = args.iter().find(|arg| {
+        let arg = arg.to_ascii_lowercase();
+        arg == "--clear" || arg == "-c"
+    });
+
+    let mut cfg: Config = confy::load("chatgpt-cli", None)?;
+
+    if clear.is_some() {
+        cfg.open_ai_key = String::new();
+        confy::store("chatgpt-cli", None, cfg)?;
+        println!("Config cleared.");
+        return Ok(());
+    }
+
+    let mut initial: Option<&str> = None;
+
+    if args.len() == 2 {
+        initial = Some(&args[1]);
+    }
+
+    if cfg.open_ai_key.is_empty() {
+        prompt_for_api_key(&mut cfg)?;
+    }
+
+    let open_ai_key = cfg.open_ai_key;
 
     let mut conversation = Conversation {
         stream: true,
@@ -42,6 +102,13 @@ async fn main() -> Result<()> {
     while run {
         talk(&format!("[{}]: ", "Me".green()));
 
+        if let Some(first) = initial {
+            talk(&format!("{}\n", first));
+            ask_chat_gpt(&open_ai_key, &mut conversation, first).await?;
+            initial = None;
+            continue;
+        }
+
         stdin.read_line(&mut line)?;
         let trimmed = line.trim();
 
@@ -56,18 +123,6 @@ async fn main() -> Result<()> {
     }
 
     Ok(())
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Choice {
-    delta: Message,
-    index: usize,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct CompletionResponse {
-    id: String,
-    choices: Vec<Choice>,
 }
 
 async fn ask_chat_gpt(key: &str, chat: &mut Conversation, question: &str) -> Result<()> {
@@ -128,4 +183,50 @@ async fn ask_chat_gpt(key: &str, chat: &mut Conversation, question: &str) -> Res
 fn talk(text: &str) {
     print!("{}", text);
     stdout().flush().expect("Could not flush stdout");
+}
+
+fn prompt_for_api_key(cfg: &mut Config) -> Result<()> {
+    println!(
+        "{}",
+        "Looks like you haven't configured your API key yet.".yellow()
+    );
+    println!(
+        "Go to {} to get your key.",
+        "https://platform.openai.com/account/api-keys".bold()
+    );
+    println!("The key is stored on your machine and only used to talk to the OpenAI API.\n");
+
+    talk("Enter your API key: ");
+
+    let mut key = String::new();
+    let stdin = std::io::stdin();
+    stdin.read_line(&mut key)?;
+    let key = key.trim();
+
+    if key.len() <= 3 || !key.starts_with("sk-") {
+        anyhow::bail!("Invalid API key");
+    }
+
+    cfg.open_ai_key = key.to_string();
+
+    confy::store("chatgpt-cli", None, cfg)?;
+
+    Ok(())
+}
+
+fn print_help() {
+    let i = "\x20\x20";
+    print!(
+        "ChatGPT CLI\n\n\
+         Usage: chatgpt [PROMPT] [OPTIONS]\n\n\
+         Options:\n\
+         {i}-h, --help\t\tPrints help information\n\
+         {i}-c, --clear\t\tClears the API key from the config\n\
+         \n\
+         Examples:\n\
+         {i}chatgpt \"How do I write quick sort in Typescript?\"\n\
+         {i}chatgpt --clear\n\
+         {i}chatgpt --help\n\
+         {i}chatgpt\n"
+    );
 }
