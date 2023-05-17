@@ -14,6 +14,12 @@ I made this because most of the CLI apps that intergrated with [OpenAI's chat co
 
 This one will keep the context of the conversation just like https://chat.openai.com does.
 
+## Features
+
+- Streams responses like ChatGPT
+- Maintains context in conversation
+- Supports piping and redirection
+
 ## Getting Started
 
 These instructions are for Mac OS only.
@@ -43,10 +49,13 @@ Examples:
   chatgpt --help
   chatgpt --clear
   chatgpt "How do I write quick sort in Typescript?"
+  chatgpt < prompt.txt
+  echo "Hi!" | chatgpt
 ```
 
 ## TODO
 
 - [x] Prompt for Open AI API key
 - [x] Save API key in system wide config file
+- [x] Support pipes and redirection (`chatgpt < prompt.txt`)
 - [ ] Handle markdown formatting

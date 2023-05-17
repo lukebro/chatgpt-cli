@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use colored::*;
 use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
-use std::io::{stdout, Write};
+use std::io::{stdout, BufRead, Write};
 
 #[derive(Serialize, Deserialize)]
 struct Config {
@@ -46,6 +46,8 @@ struct CompletionResponse {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let piped = !atty::is(atty::Stream::Stdin);
+
     let args: Vec<String> = std::env::args().collect();
     let help = args.iter().find(|arg| {
         let arg = arg.to_ascii_lowercase();
@@ -90,33 +92,51 @@ async fn main() -> Result<()> {
     };
 
     println!(
-        "\n{}\n{}\n",
+        "\n{}\n",
         "ChatGPT in your CLI".blue(),
-        "Type 'exit' to quit".blue()
     );
+
+    if !piped {
+        println!("{}\n", "Type 'exit' to quit".blue());
+    }
 
     let stdin = std::io::stdin();
     let mut run = true;
     let mut line = String::new();
 
     while run {
+        let mut handle = stdin.lock();
         talk(&format!("[{}]: ", "Me".green()));
 
         if let Some(first) = initial {
+            let first = first.trim();
             talk(&format!("{}\n", first));
             ask_chat_gpt(&open_ai_key, &mut conversation, first).await?;
             initial = None;
             continue;
         }
 
-        stdin.read_line(&mut line)?;
+        handle.read_line(&mut line)?;
         let trimmed = line.trim();
 
-        if trimmed == "exit" {
-            run = false;
-            talk(&format!("{}\n", "Goodbye!".blue()));
-        } else {
-            ask_chat_gpt(&open_ai_key, &mut conversation, &trimmed).await?;
+        match trimmed {
+            "exit" => {
+                run = false;
+                talk(&format!("{}\n", "Goodbye!".blue()));
+                continue;
+            }
+            "" => continue,
+            _ => {
+                if piped {
+                    talk(&format!("{}\n", trimmed));
+                }
+
+                ask_chat_gpt(&open_ai_key, &mut conversation, &trimmed).await?;
+
+                if piped {
+                    return Ok(());
+                }
+            }
         }
 
         line.clear();
@@ -227,6 +247,8 @@ fn print_help() {
          {i}chatgpt \"How do I write quick sort in Typescript?\"\n\
          {i}chatgpt --clear\n\
          {i}chatgpt --help\n\
-         {i}chatgpt\n"
+         {i}chatgpt\n\
+         {i}chatgpt < prompt.txt\n\
+         {i}echo \"hi!\" | chatgpt\n"
     );
 }
