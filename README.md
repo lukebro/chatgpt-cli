@@ -53,9 +53,6 @@ Examples:
   echo "Hi!" | chatgpt
 ```
 
-## TODO
+## License
 
-- [x] Prompt for Open AI API key
-- [x] Save API key in system wide config file
-- [x] Support pipes and redirection (`chatgpt < prompt.txt`)
-- [ ] Handle markdown formatting
+MIT
