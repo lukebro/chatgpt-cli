@@ -1,4 +1,4 @@
-# chatgpt-cli
+# ChatGPT CLI
 
 <p align="center">
   Talk to ChatGPT in your terminal.
